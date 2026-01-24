@@ -6,10 +6,58 @@ import {
 import { Link } from "react-router-dom";
 
 const Report = () => {
-  const [image, setImage] = useState(null);
+
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const fileInputRef = useRef(null);
+  //   const fileInputRef = useRef(null);
+  
+  const [image, setImage] = useState(null);
+  const imageFileRef = useRef(null);
+  
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const streamRef = useRef(null);
+
+  
+
+  const startCamera = async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" },
+    });
+
+    streamRef.current = stream;
+    videoRef.current.srcObject = stream;
+  } catch {
+    alert("Camera permission is required");
+  }
+};
+
+
+
+const capturePhoto = () => {
+  const video = videoRef.current;
+  const canvas = canvasRef.current;
+  const ctx = canvas.getContext("2d");
+
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  ctx.drawImage(video, 0, 0);
+
+  canvas.toBlob((blob) => {
+    const file = new File([blob], `report_${Date.now()}.jpg`, {
+      type: "image/jpeg",
+    });
+
+    imageFileRef.current = file;
+    setImage(URL.createObjectURL(blob));
+
+    // Stop camera
+    streamRef.current.getTracks().forEach(track => track.stop());
+  }, "image/jpeg", 0.9);
+};
+
+
 
   const [formData, setFormData] = useState({
     location: "",
@@ -19,14 +67,14 @@ const Report = () => {
 
   
   
-  const handleImageUpload = (e) => {
-      const file = e.target.files[0];
-      if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setImage(reader.result);
-      reader.readAsDataURL(file);
-    }
-  };
+//   const handleImageUpload = (e) => {
+//       const file = e.target.files[0];
+//       if (file) {
+//       const reader = new FileReader();
+//       reader.onloadend = () => setImage(reader.result);
+//       reader.readAsDataURL(file);
+//     }
+//   };
 
   const handleSubmit = async (e) => {
       e.preventDefault();
@@ -39,7 +87,10 @@ const Report = () => {
       const user = JSON.parse(localStorage.getItem("user"));
       
   const data = new FormData();
-  data.append("image", fileInputRef.current.files[0]);
+//   data.append("image", fileInputRef.current.files[0]);
+//   data.append("image", fileInputRef.current);
+  data.append("image", imageFileRef.current);
+
   data.append("location", formData.location);
   data.append("description", formData.description);
   data.append("issuetype", formData.issuetype);
@@ -96,39 +147,46 @@ const Report = () => {
         <form onSubmit={handleSubmit} className="space-y-8">
           
           {/* IMAGE UPLOAD SECTION */}
-          <div className="space-y-3">
-            <label className="text-sm font-black text-slate-400 uppercase tracking-widest">Visual Evidence</label>
-            <div 
-              onClick={() => fileInputRef.current.click()}
-              className={`relative h-64 w-full rounded-[2.5rem] border-2 border-dashed transition-all flex flex-col items-center justify-center cursor-pointer overflow-hidden
-                ${image ? 'border-transparent shadow-2xl' : 'border-slate-200 bg-white hover:border-blue-400 hover:bg-blue-50/30'}`}
-            >
-              {image ? (
-                <>
-                  <img src={image} alt="Preview" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition">
-                    <p className="bg-white px-4 py-2 rounded-full font-bold text-sm">Change Photo</p>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center p-6">
-                  <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Camera size={32} />
-                  </div>
-                  <p className="text-slate-900 font-bold">Take or Upload a Photo</p>
-                  <p className="text-slate-400 text-sm mt-1">Real photos speed up the resolution</p>
-                </div>
-              )}
-              <input 
-                type="file" 
-                accept="image/*" 
-                capture="environment" // This triggers the mobile camera directly
-                className="hidden" 
-                ref={fileInputRef}
-                onChange={handleImageUpload}
-              />
-            </div>
-          </div>
+           <div className="space-y-3">
+  <label className="text-sm font-black text-slate-400 uppercase tracking-widest">
+    Live Camera Proof
+  </label>
+
+  <div className="relative h-64 w-full rounded-[2.5rem] overflow-hidden bg-black">
+
+    {!image ? (
+      <>
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          className="w-full h-full object-cover"
+        />
+
+        <button
+          type="button"
+          onClick={startCamera}
+          className="absolute bottom-4 left-4 bg-white px-4 py-2 rounded-xl font-bold"
+        >
+          Start Camera
+        </button>
+
+        <button
+          type="button"
+          onClick={capturePhoto}
+          className="absolute bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded-xl font-bold"
+        >
+          Capture
+        </button>
+      </>
+    ) : (
+      <img src={image} className="w-full h-full object-cover" />
+    )}
+
+    <canvas ref={canvasRef} className="hidden" />
+  </div>
+</div>
+
 
           {/* DETAILS SECTION */}
           <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100 space-y-6">
