@@ -12,10 +12,10 @@ router.get("/worker", getWorkerIssues);
 
 router.get("/user/:username", getUserIssues);
 router.get("/all", getAllIssues);
-router.get("/stats", protect, getStats);
-router.get("/:id", protect, getIssueById);
+router.get("/stats",  getStats);
+router.get("/:id",  getIssueById);
 
-router.put("/:id/status", protect, updateIssueStatus);
+router.put("/:id/status",  updateIssueStatus);
 
 router.put("/:id/work-proof", upload.single("image"), uploadWorkProof );
 
