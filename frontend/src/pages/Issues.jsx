@@ -1,236 +1,215 @@
-import React from 'react'
-import { useState } from 'react';
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  ArrowBigUp,
+  MessageSquare,
+  MapPin,
+  User,
+  ChevronRight,
+  Loader2,
+  TrendingUp,
+  RefreshCw
+} from "lucide-react";
+import { API_BASE_URL } from "../config/api";
+
+const FILTERS = ["All", "Pending", "In Progress", "Resolved"];
 
 const Issues = () => {
-    const issuesData = [
-  {
-    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRhwbO41EZi1pZ9uDPADI_GGRJvJdqx6EKwug&s",
-    "location": "Shivaji Nagar, JM Road, Pune, Maharashtra",
-    "issuetype": "Pothole",
-    "description": "Deep pothole causing frequent traffic jams.",
-    "username": "Amit Kulkarni",
-    "date_created": "2025-02-10"
-  },
-  {
-    "image": "https://media.istockphoto.com/id/929942316/photo/old-highway-with-holes-and-snow-landscape-road-potholes-in-cloudy-winter-weather-concept.jpg?s=612x612&w=0&k=20&c=ZtK8wJgXLQYEWGMJVGeyZBqVPKsdHMQlml1Vx8i17aw=",
-    "location": "Andheri East, MIDC Road, Mumbai, Maharashtra",
-    "issuetype": "Pothole",
-    "description": "Road damaged badly affecting daily commuters.",
-    "username": "Kunal Mehta",
-    "date_created": "2025-06-18"
-  },
-  {
-    "image": "https://media.istockphoto.com/id/601908512/photo/large-deep-pothole-in-montreal-street-canada.jpg?s=612x612&w=0&k=20&c=BrRemAWV7U0-02-Ob7UtQ0c4nz7Owi81bgy9SWZOaM4=",
-    "location": "Shastri Nagar, Ajmer Road, Jaipur, Rajasthan",
-    "issuetype": "Pothole",
-    "description": "Large pothole causing vehicle breakdowns.",
-    "username": "Mohit Choudhary",
-    "date_created": "2025-09-01"
-  },
-  {
-    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpFReE3Ew5C0wzSW235mNbLfUklJrqtCNVuQ&s",
-    "location": "Saket Colony, Alwar Road, Gurugram, Haryana",
-    "issuetype": "Pothole",
-    "description": "Pothole making the road unsafe for two-wheelers.",
-    "username": "Vikas Yadav",
-    "date_created": "2026-01-04"
-  },
+  const [issuesData, setIssuesData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [upvotes, setUpvotes] = useState({});
+  const [activeFilter, setActiveFilter] = useState("All");
 
-   {
-    "image": "https://res.cloudinary.com/dd4s9ife4/image/upload/v1769165037/users/xmkdehsnakybcbwjd9ht.jpg",
-    "location": "Laxmi Colony, RC Dutt Road, Vadodara, Gujarat",
-    "issuetype": "Water Leak",
-    "description": "Water leaking continuously from underground pipe.",
-    "username": "Neha Desai",
-    "date_created": "2025-03-12"
-  },
-  {
-    "image": "https://t4.ftcdn.net/jpg/18/30/80/81/360_F_1830808176_tGJFIO2vfmwDDYoVFXJU4JKgqcn7VaJ2.jpg",
-    "location": "Kukatpally Housing Board, Hyderabad, Telangana",
-    "issuetype": "Water Leak",
-    "description": "Water leakage causing slippery road surface.",
-    "username": "Arjun Reddy",
-    "date_created": "2025-07-09"
-  },
-  {
-    "image": "https://media.istockphoto.com/id/1081436086/photo/water-pressure-from-a-large-pipe-over-the-river.jpg?s=612x612&w=0&k=20&c=JoUu7W3og1KTi4O5pddUznkqkNd4kAtbTKop-ull09c=",
-    "location": "Sector 62, Noida, Uttar Pradesh",
-    "issuetype": "Water Leak",
-    "description": "Continuous water leak leading to water wastage.",
-    "username": "Sneha Verma",
-    "date_created": "2025-10-16"
-  },
-  {
-    "image": "https://www.hindustantimes.com/ht-img/img/2023/05/09/550x309/Thane--India---May-09--2023--Water-being-wasted-du_1683660844427.jpg",
-    "location": "Dilsukhnagar, Hyderabad, Telangana",
-    "issuetype": "Water Leak",
-    "description": "Leak from roadside pipeline flooding the street.",
-    "username": "Srinivas Rao",
-    "date_created": "2026-01-08"
-  },
+  useEffect(() => {
+    const fetchIssues = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/issues/all`);
+        const data = await res.json();
+        setIssuesData(data);
+        
+        // Stable mock upvotes based on MongoDB ID hash to avoid randomness on every load
+        const initVotes = {};
+        data.forEach(issue => {
+          const hash = issue._id ? parseInt(issue._id.slice(-4), 16) : 0;
+          initVotes[issue._id] = (hash % 25) + 3;
+        });
+        setUpvotes(initVotes);
+      } catch (error) {
+        console.error("Failed to fetch issues:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchIssues();
+  }, []);
 
-  {
-    "image": "https://images.indianexpress.com/2025/09/bhosari-hazardous-waste.jpg?w=1200",
-    "location": "Bapu Nagar, Kalavad Road, Rajkot, Gujarat",
-    "issuetype": "Garbage",
-    "description": "Garbage piled near residential buildings.",
-    "username": "Pooja Patel",
-    "date_created": "2025-04-05"
-  },
-  {
-    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTDTfa9oPcyGnzasqWG9WTvMrClR4hSGRa44Q&s",
-    "location": "Anna Nagar West, Chennai, Tamil Nadu",
-    "issuetype": "Garbage",
-    "description": "Garbage not collected for several days.",
-    "username": "Divya Iyer",
-    "date_created": "2025-06-28"
-  },
-  {
-    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcROoWjD_ukKA565F1EHJlNnQFwOcpvB_ZC55Q&s",
-    "location": "Lake Town, VIP Road, Kolkata, West Bengal",
-    "issuetype": "Garbage",
-    "description": "Garbage dumped beside the main road.",
-    "username": "Sourav Banerjee",
-    "date_created": "2025-09-14"
-  },
-  {
-    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ_XPL3yj4moDiE78dCzcN7_ch1JedrcFmnTQ&s",
-    "location": "Talwandi, Kota, Rajasthan",
-    "issuetype": "Garbage",
-    "description": "Garbage spread across the street.",
-    "username": "Riya Sharma",
-    "date_created": "2025-12-02"
-  },
-
-  {
-    "image": "https://static.toiimg.com/thumb/msid-27493114,imgsize-29939,width-400,resizemode-4/27493114.jpg",
-    "location": "Gandhi Nagar, Ring Road, Indore, Madhya Pradesh",
-    "issuetype": "Drainage",
-    "description": "Drainage overflow causing foul smell.",
-    "username": "Saurabh Jain",
-    "date_created": "2025-05-19"
-  },
-  {
-    "image": "https://static.toiimg.com/thumb/msid-62091398,width-400,resizemode-4/62091398.jpg",
-    "location": "Civil Lines, Prayagraj, Uttar Pradesh",
-    "issuetype": "Drainage",
-    "description": "Open drainage overflowing during rainfall.",
-    "username": "Ankit Mishra",
-    "date_created": "2025-07-27"
-  },
-  {
-    "image": "https://static.toiimg.com/thumb/msid-27493114,imgsize-29939,width-400,resizemode-4/27493114.jpg",
-    "location": "Panchvati, Nashik, Maharashtra",
-    "issuetype": "Drainage",
-    "description": "Blocked drain leading to water stagnation.",
-    "username": "Nikhil Patil",
-    "date_created": "2025-10-05"
-  },
-  {
-    "image": "https://media.assettype.com/indiawaterportal%2Fimport%2Fsites%2Fdefault%2Ffiles%2Fstyles%2Fimage_1200x675%2Fpublic%2F2024-08%2FDrains.jpg",
-    "location": "Ashok Nagar, Ranchi, Jharkhand",
-    "issuetype": "Drainage",
-    "description": "Drain water overflowing onto main road.",
-    "username": "Pankaj Verma",
-    "date_created": "2025-12-20"
-  },
-
-   {
-    "image": "https://www.hindustantimes.com/ht-img/img/2023/07/23/1600x900/A-non-functioning-street-light-at-southern-bypass-_1690134239324.jpg",
-    "location": "Sector 14, Rohini, New Delhi",
-    "issuetype": "Street Light",
-    "description": "Street lights not working at night.",
-    "username": "Ravi Singh",
-    "date_created": "2025-01-25"
-  },
-  {
-    "image": "https://citizen.complainthub.org/uploads/default/fbc901fad7060aaf102d86bc185aeb229cba7724",
-    "location": "MG Road, Ernakulam, Kochi, Kerala",
-    "issuetype": "Street Light",
-    "description": "Flickering street light causing poor visibility.",
-    "username": "Rahul Menon",
-    "date_created": "2025-08-08"
-  },
-  {
-    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTn04un6izXJ5Qej0CsDHUWNaPtCPBw_UCK7A&s",
-    "location": "Rajaji Nagar, Bengaluru, Karnataka",
-    "issuetype": "Street Light",
-    "description": "Street lights not functioning near bus stop.",
-    "username": "Harsha Gowda",
-    "date_created": "2025-11-11"
-  },
-  {
-    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTsDp479rbhzssGciiXZdGFGd0SZ_TwqN0S2w&s",
-    "location": "Model Town, Jalandhar, Punjab",
-    "issuetype": "Street Light",
-    "description": "Non-functional street light making area unsafe.",
-    "username": "Gurpreet Singh",
-    "date_created": "2026-01-06"
-  }
-];
-
-const [upvotes, setUpvotes] = useState(
-    issuesData.map(() => 0)
-  );
-
-  const handleUpvote = (index) => {
-    const updated = [...upvotes];
-    updated[index]++;
-    setUpvotes(updated);
+  const handleUpvote = (id) => {
+    const upvotedList = JSON.parse(localStorage.getItem("upvotedIssues") || "[]");
+    if (upvotedList.includes(id)) return;
+    
+    setUpvotes(prev => ({ ...prev, [id]: prev[id] + 1 }));
+    upvotedList.push(id);
+    localStorage.setItem("upvotedIssues", JSON.stringify(upvotedList));
   };
+
+  const isUpvoted = (id) => {
+    const upvotedList = JSON.parse(localStorage.getItem("upvotedIssues") || "[]");
+    return upvotedList.includes(id);
+  };
+
+  const filteredIssues =
+    activeFilter === "All"
+      ? issuesData
+      : issuesData.filter(i => i.status === activeFilter);
+
+  const role = localStorage.getItem("role");
+  const token = localStorage.getItem("token");
+
+  const getDetailLink = (issueId) => {
+    if (!token) return "/login";
+    if (role === "admin" || role === "worker") return `/admin/issues/${issueId}`;
+    return `/user/report/${issueId}`;
+  };
+
+  if (loading)
+    return (
+      <div className="py-20 flex flex-col items-center justify-center text-slate-400">
+        <Loader2 className="animate-spin mb-4 text-civic-saffron" size={40} />
+        <p className="font-bold uppercase tracking-widest text-xs">Syncing Live Feed...</p>
+      </div>
+    );
+
   return (
-    <section className="py-14 px-6 max-w-7xl mx-auto">
-        <h2 className="text-3xl font-bold text-[#2C3E50] mb-10 text-center">
-          Recent Reported Issues
-        </h2>
+    <section className="py-24 px-6 max-w-7xl mx-auto font-inter">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-4">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-civic-saffron font-black text-xs uppercase tracking-[0.2em]">
+            <TrendingUp size={16} /> Live Community Feed
+          </div>
+          <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight font-outfit">
+            Recent Reports
+          </h2>
+        </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {issuesData.map((issue, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition"
+        {/* Functional Filter Tabs */}
+        <div className="flex gap-2 flex-wrap">
+          {FILTERS.map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveFilter(tab)}
+              className={`px-5 py-2 rounded-full text-sm font-bold transition-all ${
+                activeFilter === tab
+                  ? "bg-gradient-to-r from-civic-saffron to-civic-saffron-600 text-white shadow-lg shadow-civic-saffron/20"
+                  : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-civic-saffron dark:hover:border-civic-saffron-400 hover:text-civic-saffron dark:hover:text-civic-saffron-400"
+              }`}
             >
-              <img
-                src={issue.image}
-                alt={issue.issuetype}
-                className="h-48 w-full object-cover"
-              />
+              {tab}
+            </button>
+          ))}
+        </div>
+      </div>
 
-              <div className="p-5">
-                <span className="text-sm font-semibold text-blue-700">
-                  {issue.issuetype}
-                </span>
+      {filteredIssues.length === 0 ? (
+        <div className="text-center py-20 text-slate-400">
+          <RefreshCw size={48} className="mx-auto mb-4 opacity-30 animate-spin" style={{ animationDuration: '3s' }} />
+          <p className="font-bold text-lg">No {activeFilter !== "All" ? activeFilter : ""} issues found.</p>
+        </div>
+      ) : (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filteredIssues.map((issue) => (
+            <div
+              key={issue._id}
+              className="group bg-white dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] border border-slate-100 dark:border-slate-700/60 shadow-glass hover:shadow-glass-lg hover:-translate-y-1 transition-all duration-500 overflow-hidden flex flex-col"
+            >
+              {/* Image */}
+              <div className="relative h-64 overflow-hidden bg-slate-100 dark:bg-slate-900">
+                <img
+                  src={issue.image}
+                  alt={issue.issuetype}
+                  className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  loading="lazy"
+                />
+                <div className="absolute top-5 left-5">
+                  <StatusBadge status={issue.status} />
+                </div>
+              </div>
 
-                <p className="text-gray-700 mt-2">
+              <div className="p-8 flex flex-col flex-1">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white group-hover:text-civic-saffron transition-colors font-outfit">
+                      {issue.issuetype}
+                    </h3>
+                    <div className="flex items-center gap-1 text-civic-navy dark:text-civic-navy-300 font-bold text-xs mt-1">
+                      <MapPin size={14} className="text-civic-saffron" /> {issue.location}
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-slate-500 dark:text-slate-400 line-clamp-2 text-sm leading-relaxed mb-6 font-medium">
                   {issue.description}
                 </p>
 
-                <p className="text-sm text-gray-500 mt-2">
-                  📍 {issue.location}
-                </p>
-
-                <p className="text-xs text-gray-400 mt-1">
-                  Reported by {issue.username} • {issue.date_created}
-                </p>
-
-                <div className="flex justify-between items-center mt-4">
-                  <button
-                    onClick={() => handleUpvote(index)}
-                    className="px-4 py-2 text-sm rounded-md bg-[#2C3E50] text-white hover:bg-opacity-90"
+                {/* Meta Info */}
+                <div className="flex items-center justify-between py-4 border-y border-slate-50 dark:border-slate-700/60 mb-6">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400">
+                      <User size={14} />
+                    </div>
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                      <span className="text-slate-900 dark:text-slate-200 block">{issue.username || "Citizen"}</span>
+                      {new Date(issue.date_created).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <Link
+                    to={getDetailLink(issue._id)}
+                    className="w-10 h-10 bg-slate-50 dark:bg-slate-700 text-slate-400 dark:text-slate-300 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 group-hover:bg-civic-saffron group-hover:text-white transition-all shadow-sm"
                   >
-                    👍 Upvote ({upvotes[index]})
-                  </button>
+                    <ChevronRight size={20} />
+                  </Link>
+                </div>
 
-                  <button className="px-4 py-2 text-sm rounded-md border border-[#2C3E50] text-[#2C3E50] hover:bg-[#2C3E50] hover:text-white transition">
-                    💬 Comment
+                {/* Interaction Bar */}
+                <div className="flex gap-3 mt-auto">
+                  <button
+                    onClick={() => handleUpvote(issue._id)}
+                    className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-sm transition-all active:scale-95 ${
+                      isUpvoted(issue._id)
+                        ? "bg-civic-saffron/20 text-civic-saffron"
+                        : "bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-civic-saffron/10 hover:text-civic-saffron"
+                    }`}
+                  >
+                    <ArrowBigUp size={20} className={isUpvoted(issue._id) ? "fill-current animate-bounce" : ""} />
+                    Upvote {upvotes[issue._id] || 0}
+                  </button>
+                  <button className="px-5 py-3 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-all">
+                    <MessageSquare size={20} />
                   </button>
                 </div>
               </div>
             </div>
           ))}
         </div>
-      </section>
-  )
-}
+      )}
+    </section>
+  );
+};
 
-export default Issues
+const StatusBadge = ({ status }) => {
+  const themes = {
+    Resolved: "bg-civic-emerald text-white shadow-lg shadow-civic-emerald/20",
+    Pending: "bg-civic-saffron text-white shadow-lg shadow-civic-saffron/20",
+    "In Progress": "bg-civic-navy text-white shadow-lg shadow-civic-navy/20 dark:bg-slate-700/80 dark:border dark:border-slate-600",
+  };
+  return (
+    <span
+      className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
+        themes[status] || "bg-slate-500 text-white"
+      }`}
+    >
+      {status}
+    </span>
+  );
+};
+
+export default Issues;

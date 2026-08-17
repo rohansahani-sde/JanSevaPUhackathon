@@ -1,9 +1,13 @@
-import React from 'react'
+import { Navigate } from "react-router-dom";
 
 const Dashboard = () => {
-  return (
-    <div>Dashboard</div>
-  )
-}
+  const role = localStorage.getItem("role");
+  const token = localStorage.getItem("token");
 
-export default Dashboard
+  if (!token) return <Navigate to="/login" replace />;
+  if (role === "admin") return <Navigate to="/admin" replace />;
+  if (role === "worker") return <Navigate to="/workerDashboard" replace />;
+  return <Navigate to="/userDashboard" replace />;
+};
+
+export default Dashboard;
